@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#386f9a"/><stop offset=".48" stop-color="#173b60"/><stop offset="1" stop-color="#0e2945"/></linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fa715d"/><stop offset="1" stop-color="#b62d2a"/></linearGradient>
+  </defs>
+  <path d="M15 13 L28 13 L50 37 L72 13 L85 13 L85 26 L62 50 L85 74 L85 87 L72 87 L50 63 L28 87 L15 87 L15 74 L38 50 L15 26 Z" fill="url(#steel)" stroke="#0e2945" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M21 17 L29 17 L50 41 L71 17 L79 17 L79 23 L56 50 L79 77 L71 83 L50 59 L29 83 L21 77 L44 50 L21 23 Z" fill="none" stroke="#d8e6ee" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M50 39 L61 50 L50 61 L39 50 Z" fill="url(#red)" stroke="#f2c5a7" stroke-width="1.5"/>
+  <path d="M50 4 L55 15 L50 21 L45 15 Z M50 96 L55 85 L50 79 L45 85 Z M4 50 L15 45 L21 50 L15 55 Z M96 50 L85 45 L79 50 L85 55 Z" fill="url(#red)"/>
+</svg>
