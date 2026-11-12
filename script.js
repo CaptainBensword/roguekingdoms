@@ -139,8 +139,14 @@
       simImage.hidden = true;
       simImage.removeAttribute("src");
     }
-    if (simValue) simValue.textContent = "?";
-    if (simLabel) simLabel.textContent = "READY TO DRAW";
+    if (simValue) {
+      simValue.hidden = false;
+      simValue.textContent = "?";
+    }
+    if (simLabel) {
+      simLabel.hidden = false;
+      simLabel.textContent = "READY TO DRAW";
+    }
     if (simResult) simResult.textContent = "The next reward is face down.";
     if (drawButton) {
       drawButton.disabled = false;
@@ -157,8 +163,8 @@
       simImage.alt = card.value + " XP reward card";
       simImage.hidden = false;
     }
-    if (simValue) simValue.textContent = card.value;
-    if (simLabel) simLabel.textContent = "XP REWARD";
+    if (simValue) simValue.hidden = true;
+    if (simLabel) simLabel.hidden = true;
     if (simCard) {
       simCard.classList.remove("revealed");
       void simCard.offsetWidth;
@@ -248,11 +254,11 @@
     ["Set up the board","Place the 19 hexes in the Shattered Isles layout. Put the three monsters at their lairs and leave all outposts neutral.","There are four home ports, four outposts, three lairs, and eight ordinary spaces.","⚓  ✦  ⚓<br>⌖  ♜  ⌖"],
     ["Choose a kingdom","Choose Crimson, Blue, Gold, or Emerald. Take that kingdom's captain, army pieces, and markers.","Every kingdom uses the same rules. Your color identifies your pieces and controlled outposts.","🔴  🔵  🟡  🟢"],
     ["Place your armies","Place the captain at its home port. For the starter setup, place a Swordsmen group on the port and an Archer group on an adjacent empty hex.","One army group occupies one hex. No two army groups can share a hex.","⚔  ➶  ♜"],
-    ["Refill your Skill hand","At the beginning of your turn, draw Skill Cards until you have seven cards, or until the deck runs out.","Skill Cards are red. Your hand can never hold more than seven cards.","▰  ▰  ▰  ▰  ▰  ▰  ▰"],
-    ["Take two orders","Choose two orders. March, Attack, Muster, and Claim are the standard actions.","Resolve one order fully before taking the next. Repeat an order only when you have a legal move.","MARCH  ·  ATTACK<br>MUSTER  ·  CLAIM"],
+    ["Start your turn","Draw Skill Cards until you hold seven. Then choose two orders and resolve them one at a time.","Your orders are March, Attack, Muster, or Claim. Skill Cards can be played when their timing allows.","▰  ▰  ▰  ▰  ▰  ▰  ▰<br>ORDER 1  →  ORDER 2"],
     ["March across the map","A March order moves up to two different groups one connected hex each.","Groups cannot move twice in a turn, move through occupied spaces, or enter an enemy-held hex before it is challenged.","⬡  →  ⬡  →  ⬡"],
     ["Attack an enemy","Choose one eligible group and one adjacent rival group. Roll a D10 and apply its result as damage to the target's shared HP.","One normal attack is one damage roll. A group normally attacks once per turn.","D10  →  DAMAGE"],
-    ["Challenge a monster","Attack a monster from an adjacent hex. Roll one D10 for damage. If it survives, it rolls one D10 back against your attacking group.","A defeated monster gives the player who landed the final blow one XP card. It returns at full HP next round.","⚔  ♜  🎴"],
+    ["Challenge a monster","Attack a monster from an adjacent hex. Roll one D10 for damage. If it survives, it rolls one D10 back against your attacking group.","Monsters stay at their lairs. Defeat one to earn an XP reward.","⚔  ♜"],
+    ["Collect XP","When a monster reaches zero HP, draw the top card from the blue XP deck. Reveal it and keep it with your collection.","The printed XP value counts in your final score. The monster returns at full HP at the start of the next round.","🎴  +  XP"],
     ["Claim an outpost","Occupy an outpost and use a Claim order. Place your banner and draw two Skill Cards if you are eligible for that outpost's reward.","Each outpost is worth ten points at the end. The first capture by each player earns the two-card reward.","⚑  +  ▰ ▰"],
     ["Finish and score","The game ends when the XP deck runs out or after eight complete rounds. Finish the current round, then add all points.","XP + 10 per controlled outpost + 2 per ordinary hex + 10 for a surviving captain. Highest score wins.","XP + TERRITORY + OUTPOSTS"]
   ];
