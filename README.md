@@ -1,20 +1,20 @@
-# Free Fall
+# Talon Card Game Index
 
-A fast-paced 2D platformer about getting a stolen breadstick back.
+The Talon Card Game Index is the home for the physical card collection and its card references.
 
-## v0.1
-- Sky world prototype
-- Run, jump, double jump, and dash
-- Optional crystal collectibles
-- Score and best score
-- Moving enemies
-- Goal platform
-- Menu and completion screen
-- No external assets required
+## Experience deck
 
-## Controls
-- A / D or Left / Right — move
-- Space — jump / double jump
-- Shift — dash
-- R — restart
-- Escape — return to menu
+- 16 individual cards
+- Four XP values: 10, 20, 35, and 50
+- Four copies of each value
+- Matching crimson-and-compass card backs
+- Click or tap a card to flip it
+- Filter by XP value or search by card ID
+
+## Design
+
+The card faces use the blue frame and parchment look from the supplied card sheet. The reverse uses the charcoal field, crimson border, and compass emblem. The site uses a bright sky-and-paper palette with a custom Talon X mark.
+
+## Publish
+
+This is a static GitHub Pages site. Keep `index.html`, `styles.css`, `script.js`, and the `assets/` folder at the repository root.
