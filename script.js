@@ -1,50 +1,45 @@
 (() => {
   "use strict";
-  const values = [10, 20, 35, 50];
-  const cards = values.flatMap((value) => Array.from({ length: 4 }, (_, index) => ({
+
+  const cardValues = [10, 20, 35, 50];
+  const cards = cardValues.flatMap((value) => Array.from({ length: 4 }, (_, copy) => ({
     value,
-    copy: index + 1,
-    id: "EXP-" + value + "-" + String(index + 1).padStart(2, "0")
+    copy: copy + 1,
+    id: `RK-${value}-${String(copy + 1).padStart(2, "0")}`
   })));
+
   const grid = document.getElementById("card-grid");
   const search = document.getElementById("card-search");
   const count = document.getElementById("visible-count");
   const empty = document.getElementById("empty-state");
-  const filters = Array.from(document.querySelectorAll(".filter-button"));
+  const filters = [...document.querySelectorAll(".filter-button")];
   let activeFilter = "all";
 
-  const compass = '<svg class="compass-icon" viewBox="0 0 180 180" role="img" aria-label="Compass emblem"><circle cx="90" cy="90" r="56" fill="none" stroke="#c83d35" stroke-width="5"/><circle cx="90" cy="90" r="45" fill="none" stroke="#9f302d" stroke-width="2"/><path d="M90 15 L103 77 L165 90 L103 103 L90 165 L77 103 L15 90 L77 77 Z" fill="#b7b4ad" stroke="#25282b" stroke-width="4" stroke-linejoin="round"/><path d="M90 15 L90 90 L77 77 Z" fill="#ece7dc"/><path d="M165 90 L90 90 L103 77 Z" fill="#777b7b"/><path d="M90 165 L90 90 L103 103 Z" fill="#d4cfc5"/><path d="M15 90 L90 90 L77 103 Z" fill="#555b5d"/><path d="M90 15 L90 165 M15 90 L165 90" fill="none" stroke="#34383b" stroke-width="2" opacity=".85"/><circle cx="90" cy="90" r="6" fill="#24282b" stroke="#ddd6c9" stroke-width="2"/></svg>';
+  const imageFor = (value) => `assets/xp-${value}.webp`;
 
-  function cardMarkup(card, index) {
-    const serial = String(index + 1).padStart(3, "0");
-    return '<button class="playing-card" type="button" data-value="' + card.value + '" data-id="' + card.id + '" aria-label="Card ' + serial + ', ' + card.value + ' XP. Show reverse.">' +
-      '<span class="card-inner">' +
-        '<span class="card-face card-front">' +
-          '<span class="card-paper">' +
-            '<span class="card-top-flourish">✦</span>' +
-            '<strong class="card-value">' + card.value + '</strong>' +
-            '<b class="card-unit">XP</b>' +
-            '<span class="card-edition">TALON • EXPERIENCE</span>' +
-            '<span class="card-bottom-flourish">✦</span>' +
-          '</span>' +
-        '</span>' +
-        '<span class="card-face card-back"><span class="back-frame">' + compass + '</span></span>' +
-      '</span>' +
-      '<span class="card-id"><span>' + card.id + '</span><span>Copy ' + card.copy + ' / 4</span></span>' +
-    '</button>';
+  function cardMarkup(card) {
+    const frontLabel = `${card.value} XP reward card ${card.id}`;
+    return `
+      <button class="playing-card" type="button" data-value="${card.value}" data-id="${card.id}" aria-label="${frontLabel}. Flip to view the reverse.">
+        <span class="card-inner">
+          <span class="card-face card-front"><img src="${imageFor(card.value)}" alt="${frontLabel}" loading="lazy" draggable="false"></span>
+          <span class="card-face card-back"><img src="assets/card-back.webp" alt="Compass card reverse" loading="lazy" draggable="false"></span>
+        </span>
+        <span class="card-id"><span>${card.id}</span><span>Copy ${card.copy} / 4</span></span>
+      </button>`;
   }
 
-  function render() {
-    const term = search.value.trim().toLowerCase();
+  function renderCards() {
+    const query = search.value.trim().toLowerCase();
     const visible = cards.filter((card) => {
-      const matchesFilter = activeFilter === "all" || String(card.value) === activeFilter;
-      const matchesSearch = !term || (card.id + " " + card.value + " xp copy " + card.copy).toLowerCase().includes(term);
-      return matchesFilter && matchesSearch;
+      const filterMatch = activeFilter === "all" || String(card.value) === activeFilter;
+      const searchMatch = !query || `${card.id} ${card.value} xp copy ${card.copy}`.toLowerCase().includes(query);
+      return filterMatch && searchMatch;
     });
-    grid.innerHTML = visible.map((card) => cardMarkup(card, cards.indexOf(card))).join("");
-    count.textContent = visible.length === 16 ? "Showing all 16 cards" : "Showing " + visible.length + " of 16 cards";
-    empty.hidden = visible.length !== 0;
+    grid.innerHTML = visible.map(cardMarkup).join("");
     grid.hidden = visible.length === 0;
+    empty.hidden = visible.length !== 0;
+    count.textContent = visible.length === cards.length ? "Showing all 16 cards" : `Showing ${visible.length} of 16 cards`;
   }
 
   filters.forEach((button) => {
@@ -55,22 +50,98 @@
         item.classList.toggle("active", selected);
         item.setAttribute("aria-pressed", String(selected));
       });
-      render();
+      renderCards();
     });
   });
-  search.addEventListener("input", render);
+
+  search.addEventListener("input", renderCards);
   grid.addEventListener("click", (event) => {
-    const card = event.target.closest(".playing-card");
-    if (!card) return;
-    const flipped = card.classList.toggle("is-flipped");
-    const id = card.dataset.id;
-    card.setAttribute("aria-label", flipped ? "Card " + id + ", reverse side. Show XP face." : "Card " + id + ", " + card.dataset.value + " XP. Show reverse.");
+    const button = event.target.closest(".playing-card");
+    if (!button) return;
+    const flipped = button.classList.toggle("is-flipped");
+    button.setAttribute("aria-label", flipped
+      ? `Card ${button.dataset.id}, compass reverse. Flip to see ${button.dataset.value} XP.`
+      : `Card ${button.dataset.id}, ${button.dataset.value} XP. Flip to view the reverse.`);
   });
+
+  // The practice draw is separate from a real tabletop match; resetting restores the demo deck.
+  const drawButton = document.getElementById("draw-button");
+  const resetButton = document.getElementById("reset-deck");
+  const drawImage = document.getElementById("draw-image");
+  const drawCard = document.getElementById("draw-card");
+  const drawResult = document.getElementById("draw-result");
+  const remainingCount = document.getElementById("remaining-count");
+  const remainingFill = document.getElementById("remaining-fill");
+  let demoDeck = [];
+
+  function shuffledDeck() {
+    const deck = cards.map((card) => ({ ...card }));
+    for (let i = deck.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function updateRemaining() {
+    remainingCount.textContent = `${demoDeck.length} card${demoDeck.length === 1 ? "" : "s"} remaining`;
+    remainingFill.style.width = `${(demoDeck.length / cards.length) * 100}%`;
+  }
+
+  function resetDemoDeck() {
+    demoDeck = shuffledDeck();
+    drawImage.src = "assets/card-back.webp";
+    drawImage.alt = "Face-down XP card";
+    drawCard.classList.remove("revealed");
+    drawResult.innerHTML = "<span>THE NEXT REWARD</span><strong>?</strong><small>Draw to reveal your XP</small>";
+    drawButton.disabled = false;
+    drawButton.innerHTML = "Draw a card <span>✦</span>";
+    updateRemaining();
+  }
+
+  drawButton.addEventListener("click", () => {
+    if (demoDeck.length === 0) return;
+    const card = demoDeck.pop();
+    drawCard.classList.remove("revealed");
+    // Force a layout pass so the shine animation can replay on consecutive draws.
+    void drawCard.offsetWidth;
+    drawImage.src = imageFor(card.value);
+    drawImage.alt = `${card.value} XP reward card`;
+    drawCard.classList.add("revealed");
+    drawResult.innerHTML = `<span>YOU FOUND</span><strong>${card.value} XP</strong><small>${card.id} · Copy ${card.copy} of 4</small>`;
+    updateRemaining();
+    if (demoDeck.length === 0) {
+      drawButton.disabled = true;
+      drawButton.textContent = "Deck empty";
+    }
+  });
+  resetButton.addEventListener("click", resetDemoDeck);
+
+  // Keyboard shortcut for card search, without stealing '/' from another input.
   document.addEventListener("keydown", (event) => {
-    if (event.key === "/" && document.activeElement !== search && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+    const tag = document.activeElement?.tagName;
+    if (event.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA" && !event.ctrlKey && !event.metaKey && !event.altKey) {
       event.preventDefault();
       search.focus();
     }
   });
-  render();
+
+  // Reveal sections as they enter view; content remains visible if the API is unavailable.
+  const revealItems = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const observer = new IntersectionObserver((entries, currentObserver) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          currentObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revealItems.forEach((item) => observer.observe(item));
+  } else {
+    revealItems.forEach((item) => item.classList.add("is-visible"));
+  }
+
+  renderCards();
+  resetDemoDeck();
 })();
