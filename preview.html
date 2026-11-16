@@ -447,7 +447,7 @@ var homes={red:"crimson-port",blue:"blue-port",gold:"gold-port",green:"emerald-p
 var archers={red:"west-channel",blue:"windward",gold:"south-isle",green:"shoal"};
 makeGroup(p,"Swordsmen",homes[p.color]);makeGroup(p,"Archers",archers[p.color]);
 });
-logLines=[];addLog("Four kingdoms entered the Shattered Isles");addLog("The match begins — "+current().name moves first");
+logLines=[];addLog("Four kingdoms entered the Shattered Isles");addLog("The match begins — "+current().name+" moves first");
 document.getElementById("setup-screen").classList.add("is-hidden");document.getElementById("finish-screen").classList.add("is-hidden");
 detail("north-isle");startTurn();
 }
