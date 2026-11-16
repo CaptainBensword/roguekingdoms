@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#142f4b">
+<title>Playtest | Rogue Kingdoms</title>
+<link rel="icon" href="assets/rogue-kingdoms-emblem.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--sea:#dcebed;--paper:#fffdf7;--line:#d8e1df;--red:#bd3934;--navy:#142f4b}
+.play-wrap{width:min(1320px,calc(100% - 36px));margin:0 auto;padding:28px 0 60px}
+.play-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:20px}
+.play-kicker{font-size:9px;font-weight:900;letter-spacing:.2em;color:#8b7770}
+.play-head h1{font:700 clamp(30px,4vw,44px)/1 Georgia,serif;color:var(--navy);margin:8px 0 5px;letter-spacing:-.04em}
+.play-head h1 em{color:var(--red);font-style:normal}
+.play-head p{margin:0;color:#71818a;font-size:11px}
+.preview-tag{border:1px solid #d8c8a6;color:#876c37;background:#f7f0df;border-radius:3px;padding:8px 11px;font-size:9px;font-weight:900;letter-spacing:.12em;white-space:nowrap}
+.play-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.75fr);gap:16px;align-items:start}
+.board-panel,.side-panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #203e4a0a}
+.board-top{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid var(--line)}
+.board-top b{font-size:10px;letter-spacing:.15em;color:var(--navy)}
+.board-top span{color:#7c8b91;font-size:9px}
+.board-stage{background:linear-gradient(145deg,#e7f0ef,#d5e5e6);padding:12px;overflow:hidden}
+#game-map{display:block;width:100%;height:auto;min-height:280px}
+.hex{cursor:pointer;transition:filter .15s,opacity .15s}
+.hex polygon{stroke:#f8fbf8;stroke-width:2.5;filter:drop-shadow(0 3px 2px #24485d25)}
+.hex:hover polygon{stroke:#bd3934;stroke-width:4}
+.hex.selected polygon{stroke:#bd3934;stroke-width:5}
+.hex.move-target polygon{stroke:#c49a4c;stroke-width:5;stroke-dasharray:6 4}
+.hex.attack-target polygon{stroke:#bd3934;stroke-width:5;stroke-dasharray:5 3}
+.hex .tile-name{font:800 7px system-ui,sans-serif;letter-spacing:.08em;fill:#536875;text-anchor:middle}
+.hex .tile-mark{font:20px Georgia,serif;fill:#536875;text-anchor:middle}
+.hex.port-red polygon{fill:#c46a63}.hex.port-blue polygon{fill:#6595b3}.hex.port-gold polygon{fill:#d2b46d}.hex.port-green polygon{fill:#77a18a}
+.hex.outpost polygon{fill:#ead9ae}.hex.lair polygon{fill:#b9b1c0}.hex.ordinary polygon{fill:#d3e1d9}
+.hex .port-word{fill:#fff;font:900 7px system-ui,sans-serif;text-anchor:middle}
+.piece circle{stroke:#fffdf7;stroke-width:2.5;filter:drop-shadow(0 2px 2px #142f4b44)}
+.piece text{font:900 11px system-ui,sans-serif;fill:white;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.monster-token{fill:#5c5366;stroke:#fffdf7;stroke-width:2.5}
+.monster-letter{font:900 12px Georgia,serif;fill:#fff;text-anchor:middle;dominant-baseline:central}
+.banner-dot{stroke:#fffdf7;stroke-width:2}
+.map-foot{display:flex;flex-wrap:wrap;gap:13px;padding:12px 16px;border-top:1px solid var(--line);color:#75848a;font-size:9px}
+.legend{display:inline-flex;align-items:center;gap:6px}.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.turn-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;background:#f7f4eb;border-top:1px solid var(--line)}
+.turn-name{font-weight:900;color:var(--navy);font-size:11px}
+.turn-meta{color:#78888f;font-size:9px}
+.order-pips{display:flex;gap:5px}.order-pips i{width:17px;height:6px;background:#c49a4c;border-radius:8px}.order-pips i.used{background:#dce3e0}
+.side-panel{overflow:hidden;margin-bottom:13px}
+.panel-title{padding:12px 14px;border-bottom:1px solid var(--line);font-size:9px;font-weight:900;letter-spacing:.15em;color:#829097}
+.side-inner{padding:13px 14px}
+.score-list{display:grid;gap:8px}
+.score-row{display:grid;grid-template-columns:9px 1fr auto;gap:8px;align-items:center;font-size:10px}
+.score-row i{width:8px;height:24px;border-radius:4px}
+.score-row b{color:var(--navy);font-size:10px}
+.score-row small{display:block;color:#859198;font-size:8px}
+.score-points{font-weight:900;color:#344c5b;font-variant-numeric:tabular-nums}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.action{border:1px solid #d5dfdd;background:#fff;border-radius:4px;padding:10px 9px;text-align:left;cursor:pointer;color:var(--navy);font-weight:900;font-size:10px;transition:.15s}
+.action small{display:block;color:#859198;font-size:8px;font-weight:600;margin-top:3px}
+.action:hover,.action.active{border-color:var(--red);background:#fbefeb}
+.action:disabled{opacity:.4;cursor:not-allowed}
+.action-wide{grid-column:1/-1}
+#finish-march{margin-top:8px;width:100%;display:none}
+#action-hint{margin:10px 0 0;padding:9px 10px;background:#f0f4f1;border-left:3px solid #c49a4c;color:#627681;font-size:9px;line-height:1.6;min-height:35px}
+#action-hint strong{color:var(--navy)}
+.muster-row{display:flex;gap:6px;margin-top:9px}
+select{min-width:0;flex:1;padding:8px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--navy);font:700 10px system-ui}
+.small-button{border:0;border-radius:4px;background:var(--navy);color:white;padding:8px 12px;font-size:9px;font-weight:900;cursor:pointer}
+.small-button:disabled{opacity:.4;cursor:not-allowed}
+.detail-name{font:700 20px Georgia,serif;color:var(--navy);margin-bottom:4px}
+.detail-type{font-size:8px;letter-spacing:.13em;font-weight:900;color:var(--red);text-transform:uppercase}
+.detail-copy{font-size:10px;line-height:1.6;color:#70818a;margin:8px 0 0}
+.detail-stats{display:flex;gap:14px;margin-top:10px}
+.detail-stats span{font-size:9px;color:#88959a}.detail-stats b{display:block;color:var(--navy);font-size:14px}
+.log-list{display:grid;gap:7px;max-height:180px;overflow:auto}
+.log-line{font-size:9px;line-height:1.45;color:#71818a;padding-left:9px;border-left:2px solid #d9e2df}
+.log-line:first-child{color:var(--navy);border-color:var(--red)}
+.reset-line{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.reset-line button{border:1px solid #d8e1df;background:#fff;border-radius:4px;color:#72828a;font-size:9px;font-weight:800;padding:7px 10px;cursor:pointer}
+#end-turn{background:var(--red);color:#fff;border:0}
+#end-turn:hover{background:#9e2e2c}
+.setup-screen,.finish-screen{position:fixed;inset:0;z-index:99;background:#10263ce8;display:grid;place-items:center;padding:18px}
+.setup-card,.finish-card{width:min(520px,100%);background:#fffdf7;border-radius:9px;padding:27px;box-shadow:0 22px 70px #0005}
+.setup-card h2,.finish-card h2{font:700 34px/1 Georgia,serif;color:var(--navy);margin:12px 0 8px}
+.setup-card h2 em,.finish-card h2 em{color:var(--red);font-style:normal}
+.setup-card p,.finish-card p{font-size:11px;color:#70818a;line-height:1.7}
+.color-picks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0}
+.color-pick{padding:13px 6px;border:1px solid var(--line);background:#fff;border-radius:5px;color:var(--navy);font-size:9px;font-weight:900;cursor:pointer}
+.color-pick i{display:block;width:20px;height:20px;border-radius:50%;margin:0 auto 7px}
+.color-pick.active{border:2px solid var(--navy);background:#f3f4ed}
+#start-game{width:100%;justify-content:center}
+.setup-note{padding:10px 12px;background:#f2f3ed;border-left:3px solid #c49a4c;font-size:9px;color:#6e7e85;line-height:1.6}
+.finish-card ol{padding-left:19px;color:#536875;font-size:11px;line-height:1.9}
+.is-hidden{display:none!important}
+@media(max-width:900px){.play-layout{grid-template-columns:1fr}.side-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.score-panel{grid-row:span 2}}
+@media(max-width:600px){.play-wrap{width:calc(100% - 20px);padding-top:20px}.play-head{align-items:flex-start;flex-direction:column}.preview-tag{align-self:flex-start}.board-stage{padding:2px}.side-grid{display:flex;flex-direction:column}.hex .tile-name{font-size:6px}#game-map{min-height:220px}.play-head h1{font-size:34px}}
+</style>
+</head>
+<body>
+<div class="site-shell">
+<header class="site-header">
+<a class="brand" href="index.html"><img class="brand-emblem" src="assets/rogue-kingdoms-emblem.svg" alt=""><span><strong>ROGUE KINGDOMS</strong><small>A TALON GAME</small></span></a>
+<nav class="main-nav" aria-label="Main navigation"><a href="index.html">Home</a><a href="preview.html" aria-current="page">Playtest</a><a href="rules.html">Rulebook</a><a href="map.html">Map</a></nav>
+<a class="header-cta" href="rules.html">Rules <b>→</b></a>
+</header>
+<main class="play-wrap">
+<div class="play-head"><div><div class="play-kicker">THE SHATTERED ISLES / TABLETOP PREVIEW</div><h1>Rogue <em>Kingdoms</em></h1><p>Take the islands, challenge the lairs, and build your score</p></div><div class="preview-tag">PLAYTEST BUILD · 4 CAPTAINS</div></div>
+<div class="play-layout">
+<section class="board-panel">
+<div class="board-top"><b>THE SHATTERED ISLES</b><span id="round-label">ROUND 1 OF 8</span></div>
+<div class="board-stage"><svg id="game-map" viewBox="0 0 640 376" role="group" aria-label="Nineteen hex game board"></svg></div>
+<div class="map-foot"><span class="legend"><i style="background:#c46a63"></i>Crimson</span><span class="legend"><i style="background:#6595b3"></i>Blue</span><span class="legend"><i style="background:#d2b46d"></i>Gold</span><span class="legend"><i style="background:#77a18a"></i>Emerald</span><span class="legend"><i style="background:#b9b1c0"></i>Monster lair</span><span class="legend"><i style="background:#ead9ae"></i>Outpost</span></div>
+<div class="turn-bar"><div><div class="turn-name" id="turn-name">Choose your captain</div><div class="turn-meta" id="turn-meta">Two orders each turn</div></div><div class="order-pips" id="order-pips"><i></i><i></i></div></div>
+</section>
+<div class="side-grid">
+<section class="side-panel score-panel"><div class="panel-title">KINGDOM SCORE</div><div class="side-inner"><div id="score-list" class="score-list"></div></div></section>
+<section class="side-panel"><div class="panel-title">YOUR ORDERS</div><div class="side-inner">
+<div class="action-grid">
+<button class="action" data-action="march">March<small>Move up to two groups</small></button>
+<button class="action" data-action="attack">Attack<small>Hit an adjacent target</small></button>
+<button class="action" data-action="muster">Muster<small>Recruit at your port</small></button>
+<button class="action" data-action="claim">Claim<small>Take an outpost</small></button>
+<button class="small-button action-wide" id="end-turn">End turn</button>
+</div>
+<div id="muster-box" class="muster-row is-hidden"><select id="muster-type" aria-label="Army group type"><option value="Swordsmen">Swordsmen group</option><option value="Archers">Archer group</option><option value="Giant">Giant group</option></select><button class="small-button" id="muster-go">Recruit</button></div>
+<div id="action-hint">Choose an order, then select pieces on the map</div>
+<button class="small-button" id="finish-march" disabled>Finish march</button>
+</div></section>
+<section class="side-panel"><div class="panel-title">SELECTED HEX</div><div class="side-inner" id="tile-detail"><div class="detail-name">The Shattered Isles</div><div class="detail-type">Map overview</div><p class="detail-copy">Select any hex to inspect it or choose a unit for your next order</p></div></section>
+<section class="side-panel"><div class="panel-title">CAPTAIN'S LOG</div><div class="side-inner"><div class="log-list" id="game-log"><div class="log-line">The isles are waiting</div></div><div class="reset-line"><span id="deck-count" class="turn-meta">16 XP cards left</span><button id="restart-game">Restart</button></div></div></section>
+</div>
+</div>
+<p style="font-size:9px;color:#89969a;margin:13px 2px 0">Solo preview against three rival captains · Monster HP and starting supply use the rulebook's marked playtest values · Skill Card effects are not included in this build</p>
+</main>
+</div>
+<div class="setup-screen" id="setup-screen">
+<div class="setup-card">
+<div class="play-kicker">ROGUE KINGDOMS / PLAYTEST</div>
+<h2>Choose your <em>kingdom</em></h2>
+<p>Pick a banner and take on the other three captains across the Shattered Isles</p>
+<div class="color-picks" id="color-picks">
+<button class="color-pick active" data-color="red"><i style="background:#bd3934"></i>CRIMSON</button>
+<button class="color-pick" data-color="blue"><i style="background:#2e668e"></i>BLUE</button>
+<button class="color-pick" data-color="gold"><i style="background:#c49a4c"></i>GOLD</button>
+<button class="color-pick" data-color="green"><i style="background:#4b8067"></i>EMERALD</button>
+</div>
+<div class="setup-note">Two orders per turn · D10 combat · 8 rounds maximum · Capture outposts for 10 points · Defeat monsters to draw XP</div>
+<button class="button primary" id="start-game" style="margin-top:15px">Start playtest →</button>
+</div>
+</div>
+<div class="finish-screen is-hidden" id="finish-screen"><div class="finish-card"><div class="play-kicker">THE SHATTERED ISLES / FINAL SCORE</div><h2 id="finish-title">The match is <em>over</em></h2><div id="finish-results"></div><button class="button primary" id="play-again" style="margin-top:14px">Play again →</button></div></div>
+<script>
+(function(){
+"use strict";
+var colors=["red","blue","gold","green"];
+var colorNames={red:"Crimson",blue:"Blue",gold:"Gold",green:"Emerald"};
+var colorHex={red:"#bd3934",blue:"#2e668e",gold:"#c49a4c",green:"#4b8067"};
+var tiles=[
+{id:"crimson-port",name:"Crimson Port",type:"port",x:247,y:62,home:"red"},
+{id:"north-isle",name:"North Isle",type:"ordinary",x:320,y:62},
+{id:"blue-port",name:"Blue Port",type:"port",x:393,y:62,home:"blue"},
+{id:"west-channel",name:"West Channel",type:"ordinary",x:210.5,y:125},
+{id:"northwatch",name:"Northwatch",type:"outpost",x:283.5,y:125},
+{id:"windward",name:"Windward Reach",type:"ordinary",x:356.5,y:125},
+{id:"eastwatch",name:"Eastwatch",type:"outpost",x:429.5,y:125},
+{id:"reef-edge",name:"Reef Edge",type:"ordinary",x:174,y:188},
+{id:"reef-lair",name:"Reef Beast Lair",type:"lair",x:247,y:188,monster:"reef"},
+{id:"iron-lair",name:"Iron Troll Lair",type:"lair",x:320,y:188,monster:"iron"},
+{id:"drake-lair",name:"Storm Drake Lair",type:"lair",x:393,y:188,monster:"drake"},
+{id:"outer-east",name:"Outer East",type:"ordinary",x:466,y:188},
+{id:"southwatch",name:"Southwatch",type:"outpost",x:210.5,y:251},
+{id:"shoal",name:"Shoal Crossing",type:"ordinary",x:283.5,y:251},
+{id:"south-isle",name:"South Isle",type:"ordinary",x:356.5,y:251},
+{id:"goldwatch",name:"Goldwatch",type:"outpost",x:429.5,y:251},
+{id:"emerald-port",name:"Emerald Port",type:"port",x:247,y:314,home:"green"},
+{id:"far-isle",name:"Far Isle",type:"ordinary",x:320,y:314},
+{id:"gold-port",name:"Gold Port",type:"port",x:393,y:314,home:"gold"}
+];
+var monsters=[
+{id:"reef",tile:"reef-lair",name:"Reef Beast",hp:30,max:30,respawn:0},
+{id:"iron",tile:"iron-lair",name:"Iron Troll",hp:45,max:45,respawn:0},
+{id:"drake",tile:"drake-lair",name:"Storm Drake",hp:60,max:60,respawn:0}
+];
+var state=null,selectedColor="red",selectedGroup=null,action=null,marchCount=0,movedThisTurn=[],attackedThisTurn=[],logLines=[];
+var map=document.getElementById("game-map");
+function tile(id){return tiles.find(function(t){return t.id===id;});}
+function player(id){return state.players.find(function(p){return p.id===id;});}
+function groupAt(id){return state.groups.find(function(g){return g.tile===id;});}
+function monsterAt(id){return monsters.find(function(m){return m.tile===id&&m.hp>0;});}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function neighbors(id){var a=tile(id);return tiles.filter(function(b){return b.id!==id&&Math.abs(distance(a,b)-73)<2;});}
+function adjacent(a,b){return neighbors(a).some(function(t){return t.id===b;});}
+function current(){return state.players[state.turn];}
+function isHuman(){return current()&&current().human;}
+function makeGroup(p,type,tileId){
+var defs={Swordsmen:{hp:40,mini:4,code:"S"},Archers:{hp:45,mini:3,code:"A"},Giant:{hp:20,mini:1,code:"G"}};
+var d=defs[type];var g={id:p.id+"-"+type+"-"+Math.random().toString(36).slice(2,7),owner:p.id,type:type,hp:d.hp,max:d.hp,mini:d.mini,code:d.code,tile:tileId};
+state.groups.push(g);return g;
+}
+function addLog(s){logLines.unshift(s);logLines=logLines.slice(0,22);document.getElementById("game-log").innerHTML=logLines.map(function(x){return '<div class="log-line">'+x+'</div>';}).join("");}
+function score(p){
+var xp=p.xp.reduce(function(a,b){return a+b;},0);
+var out=tiles.filter(function(t){return t.type==="outpost"&&t.owner===p.id;}).length*10;
+var ordinary=state.groups.filter(function(g){return g.owner===p.id&&tile(g.tile).type==="ordinary";}).length*2;
+return xp+out+ordinary+10;
+}
+function renderScores(){
+document.getElementById("score-list").innerHTML=state.players.map(function(p){return '<div class="score-row"><i style="background:'+colorHex[p.color]+'"></i><div><b>'+p.name+(p.human?" · YOU":"")+'</b><small>'+p.xp.reduce(function(a,b){return a+b;},0)+' XP · '+tiles.filter(function(t){return t.type==="outpost"&&t.owner===p.id;}).length+' outposts</small></div><span class="score-points">'+score(p)+'</span></div>';}).join("");
+}
+function pieceMarkup(g,t){
+return '<g class="piece" transform="translate('+t.x+' '+(t.y+3)+')"><circle r="13" fill="'+colorHex[player(g.owner).color]+'"></circle><text y="1">'+({Swordsmen:"S",Archers:"A",Giant:"G"}[g.type])+'</text></g>';
+}
+function renderMap(){
+var out='<rect x="0" y="0" width="640" height="376" rx="14" fill="#dcebed"/><g opacity=".5" fill="none" stroke="#fff" stroke-width="2"><path d="M20 90Q150 25 280 90T620 85M15 330Q160 260 300 330T630 320M25 210Q160 160 300 210T620 210"/></g>';
+tiles.forEach(function(t){
+var cls=t.type==="port"?"port-"+t.home:t.type;
+var selected=selectedGroup&&selectedGroup.tile===t.id;
+var target=false;
+if(action==="march"&&selectedGroup&&adjacent(selectedGroup.tile,t.id)&&!groupAt(t.id)&&!(t.type==="port"&&t.home!==selectedGroup.owner))target=true;
+if(action==="attack"&&selectedGroup&&adjacent(selectedGroup.tile,t.id)&&(groupAt(t.id)&&groupAt(t.id).owner!==selectedGroup.owner||monsterAt(t.id)))target=true;
+var mark=t.type==="port"?"⚓":t.type==="outpost"?"⌖":t.type==="lair"?"♜":"✦";
+var label=t.type==="port"?colorNames[t.home].toUpperCase():t.type==="outpost"?"OUTPOST":t.type==="lair"?(t.monster==="reef"?"REEF BEAST":t.monster==="iron"?"IRON TROLL":"STORM DRAKE"):"";
+out+='<g class="hex '+cls+(selected?" selected":"")+(target?(action==="attack"?" attack-target":" move-target"):"")+'" data-tile="'+t.id+'" tabindex="0" role="button" aria-label="'+t.name+'"><polygon points="'+(t.x-42)+','+(t.y-24)+' '+t.x+','+(t.y-48)+' '+(t.x+42)+','+(t.y-24)+' '+(t.x+42)+','+(t.y+24)+' '+t.x+','+(t.y+48)+' '+(t.x-42)+','+(t.y+24)+'"/>';
+if(t.type==="port")out+='<text class="tile-mark" y="'+(t.y+4)+'" x="'+t.x+'">'+mark+'</text><text class="port-word" x="'+t.x+'" y="'+(t.y+25)+'">'+label+'</text>';
+else if(t.type==="lair"){out+='<text class="tile-mark" y="'+(t.y+4)+'" x="'+t.x+'">'+mark+'</text><text class="tile-name" x="'+t.x+'" y="'+(t.y+25)+'">'+label+'</text>';var mm=monsterAt(t.id);if(mm)out+='<text class="tile-name" x="'+t.x+'" y="'+(t.y+36)+'">'+mm.hp+'/'+mm.max+'</text>';}
+else{out+='<text class="tile-mark" y="'+(t.y+5)+'" x="'+t.x+'">'+mark+'</text>';if(label)out+='<text class="tile-name" x="'+t.x+'" y="'+(t.y+26)+'">'+label+'</text>';}
+if(t.type==="outpost"&&t.owner)out+='<circle class="banner-dot" cx="'+(t.x+31)+'" cy="'+(t.y-30)+'" r="7" fill="'+colorHex[player(t.owner).color]+'"/>';
+var g=groupAt(t.id);if(g)out+=pieceMarkup(g,t);
+out+='</g>';
+});
+monsters.forEach(function(m){if(m.hp<=0){var t=tile(m.tile);out+='<g transform="translate('+t.x+' '+(t.y-4)+')"><circle r="13" fill="#f5f1e8" stroke="#776b7c" stroke-width="2" stroke-dasharray="3 3"/><text text-anchor="middle" y="4" fill="#776b7c" font-size="11">×</text></g>'; }});
+map.innerHTML=out;
+}
+function detail(id){
+var t=tile(id),g=groupAt(id),m=monsterAt(id),owner=t.owner?player(t.owner):null;
+var body="";
+if(t.type==="port")body="Home port for "+colorNames[t.home]+" — recruiting is only available when this hex is empty";
+if(t.type==="ordinary")body="Open ground — an army group here adds 2 points at the end of the match";
+if(t.type==="outpost")body=owner?"Banner held by "+owner.name+" — worth 10 points":"Neutral outpost — occupy it, then spend a Claim order";
+if(t.type==="lair")body=m?m.name+" — "+m.hp+" HP remaining":"The lair is quiet until the next round";
+if(g)body+=" · "+player(g.owner).name+" "+g.type+" · "+g.hp+"/"+g.max+" HP";
+if(t.type==="port"&&g)body+=" · "+g.type+" defending the port";
+document.getElementById("tile-detail").innerHTML='<div class="detail-name">'+t.name+'</div><div class="detail-type">'+t.type+'</div><p class="detail-copy">'+body+'</p>'+(g?'<div class="detail-stats"><span><b>'+g.hp+'/'+g.max+'</b>Group HP</span><span><b>'+g.mini+'</b>Miniatures</span></div>':m?'<div class="detail-stats"><span><b>'+m.hp+'</b>Monster HP</span></div>':"");
+}
+function refresh(){
+renderMap();renderScores();
+document.getElementById("round-label").textContent="ROUND "+state.round+" OF 8";
+document.getElementById("turn-name").textContent=current().name+(current().human?" · YOUR TURN":" · THINKING");
+document.getElementById("turn-meta").textContent=state.orders+" orders left · "+state.xpDeck.length+" XP cards in deck";
+document.getElementById("order-pips").innerHTML='<i class="'+(state.orders<2?"used":"")+'"></i><i class="'+(state.orders<1?"used":"")+'"></i>';
+document.getElementById("deck-count").textContent=state.xpDeck.length+" XP cards left";
+document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===action);b.disabled=!isHuman()||state.orders<=0;});
+document.getElementById("end-turn").disabled=!isHuman();
+document.getElementById("muster-box").classList.toggle("is-hidden",action!=="muster");
+document.getElementById("finish-march").style.display=action==="march"?"block":"none";
+document.getElementById("finish-march").disabled=marchCount===0||!isHuman();
+}
+function hint(s){document.getElementById("action-hint").textContent=s;}
+function clearAction(){action=null;selectedGroup=null;marchCount=0;refresh();}
+function setAction(a){
+if(!isHuman()||state.orders<=0)return;
+action=action===a?null:a;selectedGroup=null;marchCount=0;
+if(action==="march")hint("Select one of your groups, then an adjacent empty hex — move a second group or finish the order");
+else if(action==="attack")hint("Select one of your groups, then an adjacent rival group or monster");
+else if(action==="muster")hint("Choose a group to recruit at your home port");
+else if(action==="claim"){claimOutpost();return;}
+else hint("Select a hex to inspect it");
+refresh();
+}
+function finishOrder(msg){
+state.orders=Math.max(0,state.orders-1);clearAction();if(msg)addLog(msg);refresh();
+if(state.orders===0&&isHuman())hint("Your two orders are used — end your turn");
+}
+function claimOutpost(){
+var t=tiles.find(function(x){return x.type==="outpost"&&groupAt(x.id)&&groupAt(x.id).owner===current().id;});
+if(!t){action=null;hint("Move a group onto an outpost first");refresh();return;}
+var p=current(),first=!p.claimed.includes(t.id),old=t.owner;
+t.owner=p.id;p.claimed.push(t.id);
+if(first)p.skill=Math.min(7,p.skill+2);
+finishOrder(p.name+" claimed "+t.name+(first?" and gained 2 Skill Cards":""));
+hint(first?"Outpost claimed — 2 Skill Cards earned":"Outpost claimed");
+}
+function d10(){return 1+Math.floor(Math.random()*10);}
+function drawXP(p){
+if(!state.xpDeck.length){addLog("The XP deck is empty");return;}
+var v=state.xpDeck.pop();p.xp.push(v);addLog(p.name+" drew "+v+" XP");
+}
+function resolveAttack(attacker,targetGroup,targetMonster){
+var p=current(),roll=d10(),targetName="",dead=false;
+if(targetGroup){
+targetGroup.hp-=roll;targetName=player(targetGroup.owner).name+" "+targetGroup.type;
+addLog(p.name+" rolled "+roll+" against "+targetName);
+if(targetGroup.hp<=0){
+var deadTile=targetGroup.tile,wasOutpost=tile(deadTile).type==="outpost";
+state.groups=state.groups.filter(function(g){return g.id!==targetGroup.id;});
+attacker.tile=deadTile;dead=true;p.skill=Math.min(7,p.skill+2);
+addLog(targetName+" defeated — attacker takes the hex");
+if(wasOutpost)addLog("Outpost banner stays until claimed");
+}
+}else if(targetMonster){
+targetMonster.hp-=roll;targetName=targetMonster.name;
+addLog(p.name+" rolled "+roll+" against "+targetName);
+if(targetMonster.hp<=0){
+targetMonster.hp=0;targetMonster.respawn=state.round+1;dead=true;drawXP(p);addLog(targetName+" defeated — it returns next round");
+}
+}
+if(targetMonster&&!dead){
+var counter=d10();attacker.hp-=counter;addLog(targetName+" counterattacked for "+counter);
+if(attacker.hp<=0){addLog(p.name+"'s "+attacker.type+" group was lost");state.groups=state.groups.filter(function(g){return g.id!==attacker.id;});}
+}
+finishOrder("Attack order complete");
+}
+function tileClick(id){
+var t=tile(id),g=groupAt(id),m=monsterAt(id);detail(id);
+if(!isHuman())return;
+if(action==="march"){
+if(g&&g.owner===current().id){selectedGroup=g;hint(g.type+" selected — choose an adjacent empty hex");refresh();detail(id);return;}
+if(!selectedGroup){hint("Choose one of your army groups first");return;}
+if(g||!adjacent(selectedGroup.tile,id)||t.type==="port"&&t.home!==current().id){hint("That hex cannot be entered");return;}
+if(marchCount>=2){hint("Two groups have moved — finish the order");return;}
+var old=selectedGroup.tile;selectedGroup.tile=id;movedThisTurn.push(selectedGroup.id);marchCount++;addLog(current().name+" marched "+selectedGroup.type+" to "+t.name);
+selectedGroup=null;refresh();detail(id);
+hint(marchCount===2?"Two groups moved — finish the March order":"One group moved — select a different group or finish the March order");return;
+}
+if(action==="attack"){
+if(g&&g.owner===current().id){if(attackedThisTurn.includes(g.id)){hint("That group has already attacked this turn");return;}selectedGroup=g;hint(g.type+" selected — choose an adjacent target");refresh();return;}
+if(!selectedGroup){hint("Select one of your groups first");return;}
+if(!adjacent(selectedGroup.tile,id)){hint("The target must be next to your group");return;}
+var enemy=g&&g.owner!==current().id?g:null;
+if(!enemy&&!m){hint("Choose an adjacent rival group or monster lair");return;}
+var atk=selectedGroup;selectedGroup=null;attackedThisTurn.push(atk.id);resolveAttack(atk,enemy,m);return;
+}
+if(g&&g.owner===current().id){selectedGroup=g;refresh();hint(g.type+" · "+g.hp+"/"+g.max+" HP");}
+}
+map.addEventListener("click",function(e){var el=e.target.closest("[data-tile]");if(el)tileClick(el.dataset.tile);});
+map.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.dataset.tile){e.preventDefault();tileClick(e.target.dataset.tile);}});
+document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){setAction(b.dataset.action);});});
+document.getElementById("finish-march").addEventListener("click",function(){if(marchCount>0)finishOrder("March order complete");});
+document.getElementById("end-turn").addEventListener("click",function(){if(isHuman())endTurn();});
+document.getElementById("muster-go").addEventListener("click",function(){
+if(!isHuman()||action!=="muster")return;
+var p=current(),home=tiles.find(function(t){return t.type==="port"&&t.home===p.color;}),kind=document.getElementById("muster-type").value;
+if(groupAt(home.id)){hint("Your home port must be empty before recruiting");return;}
+if(p.supply[kind]<=0){hint("No "+kind+" groups left in your supply");return;}
+p.supply[kind]--;makeGroup(p,kind,home.id);finishOrder(p.name+" mustered a "+kind+" group at "+home.name);
+});
+function legalAttackTargets(g){
+return neighbors(g.tile).map(function(t){return {tile:t,group:groupAt(t.id),monster:monsterAt(t.id)};}).filter(function(x){return x.group&&x.group.owner!==g.owner||x.monster;});
+}
+function aiClaim(p){
+var t=tiles.find(function(x){return x.type==="outpost"&&groupAt(x.id)&&groupAt(x.id).owner===p.id&&x.owner!==p.id;});
+if(!t)return false;
+var first=!p.claimed.includes(t.id);t.owner=p.id;p.claimed.push(t.id);if(first)p.skill=Math.min(7,p.skill+2);addLog(p.name+" claimed "+t.name);return true;
+}
+function aiAttack(p){
+var candidates=state.groups.filter(function(g){return g.owner===p.id&&!attackedThisTurn.includes(g.id);});
+for(var i=0;i<candidates.length;i++){
+var g=candidates[i],targets=legalAttackTargets(g);
+if(targets.length){
+targets.sort(function(a,b){return (a.monster?0:1)-(b.monster?0:1);});
+var t=targets[0];attackedThisTurn.push(g.id);var old=state.turn;resolveAttackAI(p,g,t.group,t.monster);state.turn=old;return true;
+}}
+return false;
+}
+function resolveAttackAI(p,attacker,targetGroup,targetMonster){
+var roll=d10(),dead=false;
+if(targetGroup){
+targetGroup.hp-=roll;addLog(p.name+" rolled "+roll+" against "+player(targetGroup.owner).name+"'s "+targetGroup.type);
+if(targetGroup.hp<=0){var dest=targetGroup.tile;state.groups=state.groups.filter(function(g){return g.id!==targetGroup.id;});attacker.tile=dest;p.skill=Math.min(7,p.skill+2);addLog(p.name+" took the defeated group's hex");dead=true;}
+}else if(targetMonster){
+targetMonster.hp-=roll;addLog(p.name+" hit "+targetMonster.name+" for "+roll);
+if(targetMonster.hp<=0){targetMonster.hp=0;targetMonster.respawn=state.round+1;drawXP(p);dead=true;addLog(targetMonster.name+" defeated");}
+}
+if(targetMonster&&!dead){var counter=d10();attacker.hp-=counter;addLog(targetMonster.name+" counterattacked for "+counter);if(attacker.hp<=0){state.groups=state.groups.filter(function(g){return g.id!==attacker.id;});addLog(p.name+" lost a "+attacker.type+" group");}}
+}
+function aiMuster(p){
+var home=tiles.find(function(t){return t.type==="port"&&t.home===p.color;});
+if(groupAt(home.id))return false;
+var type=["Swordsmen","Archers","Giant"].find(function(k){return p.supply[k]>0;});
+if(!type)return false;p.supply[type]--;makeGroup(p,type,home.id);addLog(p.name+" mustered "+type);return true;
+}
+function pathStep(start,target,owner){
+var queue=[start],prev={};prev[start]=null;
+while(queue.length){var id=queue.shift();if(id===target)break;neighbors(id).forEach(function(n){if(prev[n.id]!==undefined)return;var occ=groupAt(n.id);if(occ&&n.id!==target)return;if(n.type==="port"&&n.home!==owner)return;prev[n.id]=id;queue.push(n.id);});}
+if(prev[target]===undefined)return null;var cur=target;while(prev[cur]!==start&&prev[cur]!==null)cur=prev[cur];return cur===start?null:cur;
+}
+function aiMarch(p){
+var objectives=tiles.filter(function(t){return t.type==="outpost"&&t.owner!==p.id&&!groupAt(t.id);});
+if(!objectives.length)objectives=tiles.filter(function(t){return t.type==="lair"&&monsterAt(t.id);});
+var candidates=state.groups.filter(function(g){return g.owner===p.id&&!movedThisTurn.includes(g.id);});
+var moves=[];
+candidates.forEach(function(g){objectives.forEach(function(obj){var step=pathStep(g.tile,obj.id,p.id);if(step)moves.push({g:g,step:step,obj:obj,d:distance(tile(g.tile),obj)});});});
+moves.sort(function(a,b){return a.d-b.d;});
+var n=0,used=[];
+for(var i=0;i<moves.length&&n<2;i++){var m=moves[i];if(used.includes(m.g.id)||groupAt(m.step))continue;m.g.tile=m.step;used.push(m.g.id);movedThisTurn.push(m.g.id);n++;addLog(p.name+" marched toward "+m.obj.name);}
+return n>0;
+}
+function aiOrder(p){
+if(aiClaim(p))return true;
+if(aiAttack(p))return true;
+if(aiMarch(p))return true;
+if(aiMuster(p))return true;
+return false;
+}
+function startTurn(){
+state.orders=2;movedThisTurn=[];attackedThisTurn=[];selectedGroup=null;action=null;marchCount=0;refresh();
+if(!current().human){hint(current().name+" is taking a turn");setTimeout(runAI,450);}else hint("Your turn — choose two orders");
+}
+function endTurn(){
+if(!isHuman())return;
+addLog(current().name+" ended the turn");state.turn++;
+if(state.turn>=state.players.length){
+state.turn=0;
+if(state.round>=8||state.xpDeck.length===0){finishGame();return;}
+state.round++;
+monsters.forEach(function(m){if(m.hp===0&&m.respawn<=state.round){m.hp=m.max;addLog(m.name+" returned to its lair");}});
+}
+startTurn();
+}
+function runAI(){
+if(!state||current().human)return;
+var p=current();
+for(var i=0;i<2;i++){if(!aiOrder(p))break;}
+state.turn++;
+if(state.turn>=state.players.length){
+state.turn=0;
+if(state.round>=8||state.xpDeck.length===0){finishGame();return;}
+state.round++;
+monsters.forEach(function(m){if(m.hp===0&&m.respawn<=state.round){m.hp=m.max;addLog(m.name+" returned to its lair");}});
+}
+startTurn();
+}
+function finishGame(){
+var ranking=state.players.slice().sort(function(a,b){return score(b)-score(a);});
+document.getElementById("finish-title").innerHTML=(ranking[0].human?"You lead the isles":"The isles belong to "+ranking[0].name)+" <em>"+score(ranking[0])+" points</em>";
+document.getElementById("finish-results").innerHTML="<ol>"+ranking.map(function(p){return "<li>"+p.name+" — "+score(p)+" points · "+p.xp.reduce(function(a,b){return a+b;},0)+" XP</li>";}).join("")+"</ol>";
+document.getElementById("finish-screen").classList.remove("is-hidden");
+}
+function initGame(){
+var order=colors.slice(),start=order.indexOf(selectedColor);order=order.slice(start).concat(order.slice(0,start));
+var players=order.map(function(c,i){return {id:c,color:c,name:colorNames[c],human:i===0,xp:[],skill:0,claimed:[],supply:{Swordsmen:1,Archers:1,Giant:1}};});
+tiles.forEach(function(t){delete t.owner;});
+monsters.forEach(function(m){m.hp=m.max;m.respawn=0;});
+state={players:players,groups:[],turn:0,round:1,orders:2,xpDeck:[10,10,10,10,20,20,20,20,35,35,35,35,50,50,50,50].sort(function(){return Math.random()-.5;})};
+players.forEach(function(p){
+var homes={red:"crimson-port",blue:"blue-port",gold:"gold-port",green:"emerald-port"};
+var archers={red:"west-channel",blue:"windward",gold:"south-isle",green:"shoal"};
+makeGroup(p,"Swordsmen",homes[p.color]);makeGroup(p,"Archers",archers[p.color]);
+});
+logLines=[];addLog("Four kingdoms entered the Shattered Isles");addLog("The match begins — "+current().name moves first");
+document.getElementById("setup-screen").classList.add("is-hidden");document.getElementById("finish-screen").classList.add("is-hidden");
+detail("north-isle");startTurn();
+}
+document.querySelectorAll("[data-color]").forEach(function(b){b.addEventListener("click",function(){selectedColor=b.dataset.color;document.querySelectorAll("[data-color]").forEach(function(x){x.classList.toggle("active",x===b);});});});
+document.getElementById("start-game").addEventListener("click",initGame);
+document.getElementById("restart-game").addEventListener("click",function(){document.getElementById("setup-screen").classList.remove("is-hidden");});
+document.getElementById("play-again").addEventListener("click",function(){document.getElementById("finish-screen").classList.add("is-hidden");document.getElementById("setup-screen").classList.remove("is-hidden");});
+renderMap();
+})();
+</script>
+</body>
+</html>
